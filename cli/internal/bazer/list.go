@@ -1,4 +1,4 @@
-package main
+package bazer
 
 import "github.com/spf13/cobra"
 
@@ -7,11 +7,11 @@ var list = &cobra.Command{
 	Args: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
-	Short: "",
-	Long: ``,
-	Example: ``,
+	Short:             "",
+	Long:              ``,
+	Example:           ``,
 	ValidArgsFunction: inspect.ValidArgsFunction,
-	Annotations: map[string]string{},
+	Annotations:       map[string]string{},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
