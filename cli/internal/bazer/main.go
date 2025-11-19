@@ -7,7 +7,7 @@ import (
 var rootcmd = &cobra.Command{}
 
 func init() {
-	rootcmd.AddCommand(list, inspect, preview, patch, rebase, apply, copy, sign, history, rollback, export)
+	rootcmd.AddCommand(preview, patch, rebase, apply, inspect, copy, sign, history, rollback, export)
 }
 
 func ReBaze() error {
