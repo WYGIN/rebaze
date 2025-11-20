@@ -13,10 +13,10 @@ import (
 )
 
 var inspect = &cobra.Command{
-	Use:               "inspect <reference>",
-	Short:             "inspect manifest information for a container reference",
-	Example:           "rebaze inspect ubuntu:latest",
-	RunE:              runInspect,
+	Use:     "inspect <reference>",
+	Short:   "inspect manifest information for a container reference",
+	Example: "rebaze inspect ubuntu:latest",
+	RunE:    runInspect,
 }
 
 func runInspect(cmd *cobra.Command, args []string) error {

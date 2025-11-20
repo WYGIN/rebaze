@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "rollback operations to revert to previous state",
+    "id": "https://opencontainers.org/schema/patch/rollback",
+    "type": "object",
+    "properties": {
+        "instructions": {
+            "description": "Ordered array of rollback operations, same schema as patch operations",
+            "type": "array",
+            "items": {
+                "$ref": "patch.json#/properties/operations/items"
+            }
+        }
+    },
+    "required": [
+        "instructions"
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Audit log of user performed operation",
+    "id": "https://opencontainers.org/schema/patch/audit",
+    "type": "object",
+    "properties": {
+        "timestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "user": {
+            "type": "string"
+        },
+        "action": {
+            "type": "string"
+        },
+        "operation": {
+            "$ref": "patch.json#/properties/operations/items"
+        },
+        "details": {
+            "type": "object",
+            "additionalProperties": true
+        }
+    }
+}

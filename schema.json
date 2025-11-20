@@ -1,0 +1,396 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://stratify.io/schemas/omni/v5.3",
+    "title": "Stratify Omni-State Mutation Bundle v5.3 (Enterprise Standard)",
+    "description": "The definitive OCI mutation schema: DAG execution, audit ledger, operation-level rollback, observability, governance, and full metadata extensibility.",
+    "type": "object",
+    "additionalProperties": false,
+  
+    "properties": {
+      "schemaVersion": { "type": "string", "const": "5.3.0" },
+      "kind": { "type": "string", "const": "MutationBundle" },
+  
+      "metadata": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["bundleId", "bundleVersion", "createdAt", "intent", "environment"],
+        "properties": {
+          "bundleId": { "type": "string", "format": "uuid" },
+          "bundleVersion": { "type": "integer", "description": "Monotonic counter for patches within this ID context" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "intent": { "type": "string" },
+          "environment": {
+            "type": "object",
+            "required": ["name", "tenantId"],
+            "properties": {
+              "name": { "type": "string", "enum": ["dev", "staging", "prod", "dr"] },
+              "tenantId": { "type": "string" },
+              "region": { "type": "string" }
+            }
+          },
+          "labels": { "type": "object", "additionalProperties": { "type": "string" } },
+          "annotations": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      },
+  
+      "governance": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "policyMode": { "type": "string", "enum": ["enforce", "audit", "break-glass"] },
+          "constraints": {
+            "type": "object",
+            "properties": {
+              "allowedRegistries": { "type": "array", "items": { "type": "string" } },
+              "maxLayerSizeMB": { "type": "integer" },
+              "blockedMediaTypes": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "auditMetadata": { "type": "object", "additionalProperties": { "type": "string" } },
+          "rules": { "type": "array", "items": { "$ref": "#/$defs/policyRule" } },
+          "approvals": { "type": "array", "items": { "$ref": "#/$defs/approval" } }
+        }
+      },
+  
+      "stateTransitions": {
+        "type": "array",
+        "description": "Ledger of 'From -> To' transitions.",
+        "items": { "$ref": "#/$defs/stateTransition" }
+      },
+  
+      "observability": { "$ref": "#/$defs/observability" },
+  
+      "plan": {
+        "type": "array",
+        "description": "Execution DAG with typed operations.",
+        "items": {
+          "oneOf": [
+            { "$ref": "#/$defs/opManifest" },
+            { "$ref": "#/$defs/opConfig" },
+            { "$ref": "#/$defs/opIndex" },
+            { "$ref": "#/$defs/opBlob" },
+            { "$ref": "#/$defs/opVerify" }
+          ]
+        }
+      },
+  
+      "recoveryPlan": { "$ref": "#/$defs/recoveryPlan" },
+  
+      "integrity": { "$ref": "#/$defs/integrity" }
+    },
+  
+    "required": ["schemaVersion", "metadata", "governance", "stateTransitions", "plan", "integrity"],
+  
+    "$defs": {
+      "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+      "variableRef": {
+        "type": "string",
+        "pattern": "^\\$\\{op\\.[a-zA-Z0-9\\-_]+\\.(digest|size|diffId)\\}$"
+      },
+      "digestOrRef": { "oneOf": [ { "$ref": "#/$defs/digest" }, { "$ref": "#/$defs/variableRef" } ] },
+  
+      "resourceState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["digest"],
+        "properties": {
+          "registry": { "type": "string", "format": "uri" },
+          "repository": { "type": "string" },
+          "tag": { "type": "string" },
+          "digest": { "$ref": "#/$defs/digestOrRef" },
+          "mediaType": { "type": "string" },
+          "size": { "type": "integer" },
+          "platform": { "type": "object", "properties": { "os": { "type": "string" }, "arch": { "type": "string" } } },
+          "urls": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+  
+      "descriptor": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["mediaType", "digest", "size"],
+        "properties": {
+          "mediaType": { "type": "string" },
+          "digest": { "$ref": "#/$defs/digestOrRef" },
+          "size": { "type": ["integer", "string"] },
+          "annotations": { "type": "object" },
+          "urls": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+  
+      "stateTransition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["component", "operation", "from", "to"],
+        "properties": {
+          "component": { "type": "string", "enum": ["manifest", "config", "layer", "index", "blob"] },
+          "operation": { "type": "string" },
+          "from": { "$ref": "#/$defs/resourceState" },
+          "to": { "$ref": "#/$defs/resourceState" },
+          "customTags": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      },
+  
+      "observability": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "executionTimeMs": { "type": "integer" },
+              "networkBytesRx": { "type": "integer" },
+              "networkBytesTx": { "type": "integer" },
+              "cpuTimeMs": { "type": "integer" },
+              "memoryBytes": { "type": "integer" },
+              "layerCacheHitRate": { "type": "number" }
+            }
+          },
+          "hooks": {
+            "type": "object",
+            "properties": {
+              "onStart": { "$ref": "#/$defs/webhook" },
+              "onSuccess": { "$ref": "#/$defs/webhook" },
+              "onFailure": { "$ref": "#/$defs/webhook" },
+              "onRollback": { "$ref": "#/$defs/webhook" }
+            }
+          }
+        }
+      },
+  
+      "recoveryPlan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["strategy", "steps"],
+        "properties": {
+          "strategy": { "type": "string", "enum": ["pointer-revert", "inverse-apply"] },
+          "autoRollbackOnFailure": { "type": "boolean", "default": true },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["step", "command", "target"],
+              "properties": {
+                "step": { "type": "integer" },
+                "command": { "type": "string" },
+                "target": { "$ref": "#/$defs/resourceState" },
+                "preconditions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } }
+              }
+            }
+          }
+        }
+      },
+  
+      "integrity": {
+        "type": "object",
+        "required": ["bundleHash", "signatures"],
+        "properties": {
+          "bundleHash": { "type": "string" },
+          "signatures": { "type": "array", "items": { "$ref": "#/$defs/signature" } }
+        }
+      },
+  
+      "opBase": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "dependsOn": { "type": "array", "items": { "type": "string" } },
+          "retryPolicy": {
+            "type": "object",
+            "properties": { "maxRetries": { "type": "integer" }, "backoff": { "type": "string" } }
+          },
+          "extensions": { "type": "object", "additionalProperties": true },
+          "userAnnotations": { "type": "object", "additionalProperties": { "type": "string" } },
+          "preConditions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+          "postConditions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } }
+        }
+      },
+  
+      "opManifest": {
+        "allOf": [
+          { "$ref": "#/$defs/opBase" },
+          {
+            "type": "object",
+            "required": ["targetManifest", "actions"],
+            "properties": {
+              "type": { "const": "MutateManifest" },
+              "targetManifest": { "$ref": "#/$defs/digestOrRef" },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["op"],
+                  "properties": {
+                    "op": { "type": "string", "enum": ["replaceLayer", "insertLayer", "deleteLayer", "updateConfigPointer"] },
+                    "layerIndex": { "type": "integer" },
+                    "fromResource": { "$ref": "#/$defs/resourceState" },
+                    "newDescriptor": { "$ref": "#/$defs/descriptor" },
+                    "reason": { "type": "string" },
+                    "actor": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+  
+      "opConfig": {
+        "allOf": [
+          { "$ref": "#/$defs/opBase" },
+          {
+            "type": "object",
+            "required": ["targetConfig", "mutations"],
+            "properties": {
+              "type": { "const": "MutateConfig" },
+              "targetConfig": { "$ref": "#/$defs/digestOrRef" },
+              "mutations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["action", "key"],
+                  "properties": {
+                    "action": { "type": "string", "enum": ["setEnv","unsetEnv","setLabel","setEntrypoint","setUser"] },
+                    "key": { "type": "string" },
+                    "value": { "type": ["string","array","null"] },
+                    "actor": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+  
+      "opIndex": {
+        "allOf": [
+          { "$ref": "#/$defs/opBase" },
+          {
+            "type": "object",
+            "required": ["sourceIndex", "updates"],
+            "properties": {
+              "type": { "const": "MutateIndex" },
+              "sourceIndex": { "$ref": "#/$defs/digestOrRef" },
+              "updates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["platform", "fromDigest", "toDigest"],
+                  "properties": {
+                    "platform": { "type": "object", "properties": { "os": { "type": "string" }, "arch": { "type": "string" } } },
+                    "fromDigest": { "$ref": "#/$defs/digestOrRef" },
+                    "toDigest": { "$ref": "#/$defs/digestOrRef" },
+                    "reason": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+  
+      "opBlob": {
+        "allOf": [
+          { "$ref": "#/$defs/opBase" },
+          {
+            "type": "object",
+            "required": ["baseBlob", "patchBlob", "algorithm", "expectedDigest"],
+            "properties": {
+              "type": { "const": "MutateBlob" },
+              "baseBlob": { "$ref": "#/$defs/digestOrRef" },
+              "patchBlob": { "$ref": "#/$defs/digestOrRef" },
+              "algorithm": { "type": "string", "enum": ["zstd-delta","bsdiff","courgette","concat"] },
+              "expectedDigest": { "$ref": "#/$defs/digestOrRef" },
+              "reason": { "type": "string" }
+            }
+          }
+        ]
+      },
+  
+      "opVerify": {
+        "allOf": [
+          { "$ref": "#/$defs/opBase" },
+          {
+            "type": "object",
+            "required": ["target", "method"],
+            "properties": {
+              "type": { "const": "Verify" },
+              "target": { "$ref": "#/$defs/digestOrRef" },
+              "method": { "type": "string", "enum": ["vuln-scan","policy-check","signature-check","size-check"] },
+              "parameters": { "type": "object" }
+            }
+          }
+        ]
+      },
+  
+      "assertion": {
+        "type": "object",
+        "required": ["target", "check"],
+        "properties": {
+          "target": { "$ref": "#/$defs/digestOrRef" },
+          "check": { "type": "string", "enum": ["exists","missing","sizeEq","digestEq","tagPinned"] },
+          "value": { "type": ["string","integer","boolean"] }
+        }
+      },
+  
+      "webhook": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string" },
+          "method": { "type": "string", "default": "POST" },
+          "headers": { "type": "object" },
+          "bodyTemplate": { "type": "string" },
+          "retryPolicy": { "type": "object", "properties": { "maxRetries": { "type": "integer" }, "backoff": { "type": "string" } } }
+        }
+      },
+  
+      "approval": {
+        "type": "object",
+        "required": ["approverId","status","timestamp"],
+        "properties": {
+          "approverId": { "type": "string" },
+          "role": { "type": "string" },
+          "status": { "type": "string","enum":["approved","rejected"] },
+          "timestamp": { "type": "string","format":"date-time" },
+          "digitalSignature": { "type": "string" }
+        }
+      },
+  
+      "signature": {
+        "type": "object",
+        "required": ["keyId","sig"],
+        "properties": {
+          "keyId": { "type": "string" },
+          "sig": { "type": "string" }
+        }
+      },
+  
+      "policyRule": {
+        "type": "object",
+        "required": ["ruleId","action"],
+        "properties": {
+          "ruleId": { "type": "string" },
+          "operationType": { "type": "string" },
+          "sourceConstraint": { "$ref": "#/$defs/resourceConstraint" },
+          "targetConstraint": { "$ref": "#/$defs/resourceConstraint" },
+          "action": { "type": "string", "enum": ["allow","deny","require-approval"] }
+        }
+      },
+  
+      "resourceConstraint": {
+        "type": "object",
+        "properties": {
+          "registryPattern": { "type": "string" },
+          "repoPattern": { "type": "string" },
+          "tagPattern": { "type": "string" }
+        }
+      }
+    }
+  }
+  

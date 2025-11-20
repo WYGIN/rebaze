@@ -1,0 +1,14 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Cryptographic Patch Signature of oci image",
+    "id": "https://opencontainers.org/schema/patch/signature",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string"
+        },
+        "reference": {
+            "type": "string"
+        }
+    }
+}

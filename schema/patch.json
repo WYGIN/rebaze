@@ -1,0 +1,94 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "OCI Patch Specification for image/index/manifest/configs and layers",
+    "id": "https://opencontainers.org/schema/patch",
+    "type": "object",
+    "properties": {
+        "schemaVersion": {
+            "description": "Patch specification schema version",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1
+        },
+        "mediaType": {
+            "description": "The mediatype of the patch spec artifact",
+            "type": "string",
+            "enum": [
+                "application/vnd.oci.image.patch.v1+json"
+            ]
+        },
+        "id": {
+            "description": "Unique identifier for this patch",
+            "type": "string"
+        },
+        "created": {
+            "description": "RFC 3339 timestamp for patch creation",
+            "type": "string",
+            "format": "date-time"
+        },
+        "author": {
+            "description": "Author or entity responsible for the patch",
+            "type": "string"
+        },
+        "description": {
+            "description": "Human-readable description of patch purpose",
+            "type": "string"
+        },
+        "subject": {
+            "description": "Target OCI descriptor (manifest, config, index, etc)",
+            "$ref": "https://opencontainers.org/schema/descriptor"
+        },
+        "operations": {
+            "description": "Ordered list of patch operations",
+            "type": "array",
+            "items": {
+                "description": "Patch Operation",
+                "$ref": "https://opencontainers.org/schema/patch/operation"
+            },
+            "minItems": 1
+        },
+        "rollback": {
+            "description": "Rollback instructions to revert the patch",
+            "$ref": "https://opencontainers.org/schema/patch/rollback"
+        },
+        "policies": {
+            "description": "Optional array of policy checks (e.g. OPA/Rego rules)",
+            "type": "array",
+            "items": {
+                "description": "policy check",
+                "$ref": "https://opencontainers.org/schema/patch/policy"
+            }
+        },
+        "audit": {
+            "description": "Audit log for patch steps",
+            "type": "array",
+            "items": {
+                "description": "audit log",
+                "$ref": "https://opencontainers.org/schema/patch/audit"
+            }
+        },
+        "signatures": {
+            "description": "List of cryptographic patch signatures (notation, cosign, etc.)",
+            "type": "array",
+            "items": {
+                "description": "cryptographic patch signature",
+                "$ref": "https://opencontainers.org/schema/patch/signature"
+            }
+        },
+        "metadata": {
+            "description": "Arbitrary top-level patch metadata (tooling info, not patch logic)",
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        }
+    },
+    "required": [
+        "schemaVersion",
+        "mediaType",
+        "id",
+        "created",
+        "subject",
+        "operations"
+    ]
+}
