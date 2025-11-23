@@ -6,10 +6,12 @@ import (
 	digest "github.com/opencontainers/go-digest"
 )
 
-var _ layerStep = (*LayerAppend)(nil)
-var _ layerStep = (*LayerPrepend)(nil)
-var _ layerStep = (*LayerRemove)(nil)
-var _ layerStep = (*LayerReplace)(nil)
+var (
+	_ layerStep = (*LayerAppend)(nil)
+	_ layerStep = (*LayerPrepend)(nil)
+	_ layerStep = (*LayerRemove)(nil)
+	_ layerStep = (*LayerReplace)(nil)
+)
 
 type layerOp struct {
 	Operation PatchOperationType `json:"op"`
@@ -23,6 +25,7 @@ type layerStep interface {
 type LayerAppend struct {
 	Reference   digest.Digest     `json:"reference"`
 	Anchor      digest.Digest     `json:"anchor"`
+	Actions     LayerSubActions   `json:"actions"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
@@ -33,6 +36,7 @@ func (l *LayerAppend) patchOp() PatchOperationType {
 type LayerPrepend struct {
 	Reference   digest.Digest     `json:"reference"`
 	Anchor      digest.Digest     `json:"anchor"`
+	Actions     LayerSubActions   `json:"actions"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
@@ -42,6 +46,7 @@ func (l *LayerPrepend) patchOp() PatchOperationType {
 
 type LayerRemove struct {
 	Reference   digest.Digest     `json:"reference"`
+	Actions     LayerSubActions   `json:"actions"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
@@ -52,6 +57,7 @@ func (l *LayerRemove) patchOp() PatchOperationType {
 type LayerReplace struct {
 	Reference   digest.Digest     `json:"reference"`
 	Anchor      digest.Digest     `json:"anchor"`
+	Actions     LayerSubActions   `json:"actions"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
@@ -60,11 +66,10 @@ func (l *LayerReplace) patchOp() PatchOperationType {
 }
 
 type LayerAction struct {
-	ID      string          `json:"id"`
-	Kind    TargetType      `json:"kind"`
-	Action  layerStep       `json:"action"`
-	Actions LayerSubActions `json:"actions"`
-	Reason  string          `json:"reason"`
+	ID     string     `json:"id"`
+	Kind   TargetType `json:"kind"`
+	Action layerStep  `json:"action"`
+	Reason string     `json:"reason"`
 	// Annotations contains arbitrary metadata relating to the targeted content.
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
@@ -85,7 +90,7 @@ func (l *LayerAction) UnmarshalJSON(data []byte) error {
 }
 
 type LayerSubActions struct {
-	Actions []layerStep `json:"actions"`
+	Actions []layerStep `json:",inline"`
 }
 
 func (l *LayerSubActions) UnmarshalJSON(data []byte) error {

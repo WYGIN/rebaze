@@ -1,94 +1,103 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "description": "OCI Patch Specification for image/index/manifest/configs and layers",
-    "id": "https://opencontainers.org/schema/patch",
+    "title": "OCI Image Patch",
+    "id": "https://bazer.io/schema/patch",
     "type": "object",
     "properties": {
         "schemaVersion": {
-            "description": "Patch specification schema version",
+            "title": "Schema Version",
+            "description": "The schema version for this patch specification.",
             "type": "integer",
             "minimum": 1,
-            "maximum": 1
+            "maximum": 1,
+            "examples": [1]
         },
         "mediaType": {
-            "description": "The mediatype of the patch spec artifact",
+            "title": "Media Type",
+            "description": "The media type of the patch specification artifact.",
             "type": "string",
-            "enum": [
-                "application/vnd.oci.image.patch.v1+json"
-            ]
+            "enum": ["application/vnd.bazer.image.patch.v1+json"],
+            "examples": ["application/vnd.bazer.image.patch.v1+json"]
         },
-        "id": {
-            "description": "Unique identifier for this patch",
-            "type": "string"
+        "artifactType": {
+            "title": "Artifact Type",
+            "description": "The IANA media type of this artifact.",
+            "$ref": "defs-descriptor.json#/definitions/mediaType"
         },
         "created": {
-            "description": "RFC 3339 timestamp for patch creation",
+            "title": "Creation Timestamp",
+            "description": "An RFC 3339 timestamp indicating when the patch was created.",
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "examples": ["2024-05-20T14:30:00Z"]
         },
         "author": {
-            "description": "Author or entity responsible for the patch",
-            "type": "string"
+            "title": "Author",
+            "description": "The author or entity responsible for creating the patch.",
+            "type": "string",
+            "examples": ["Some Corp <some.corp@example.com>"]
         },
         "description": {
-            "description": "Human-readable description of patch purpose",
-            "type": "string"
+            "title": "Description",
+            "description": "A human-readable description of the patch's purpose.",
+            "type": "string",
+            "examples": ["This patch updates the base image to the latest version."]
         },
         "subject": {
-            "description": "Target OCI descriptor (manifest, config, index, etc)",
+            "title": "Subject",
+            "description": "The OCI descriptor (manifest, config, or index) that this patch targets.",
             "$ref": "https://opencontainers.org/schema/descriptor"
         },
-        "operations": {
-            "description": "Ordered list of patch operations",
+        "data": {
+            "title": "Embedded Content",
+            "description": "An embedding of the targeted content.",
+            "$ref": "defs.json#/definitions/base64",
+            "contentEncoding": "base64"
+        },
+        "users": {
+            "title": "Users",
+            "description": "A list of users associated with this patch.",
             "type": "array",
             "items": {
-                "description": "Patch Operation",
-                "$ref": "https://opencontainers.org/schema/patch/operation"
-            },
-            "minItems": 1
+                "$ref": "user.json#"
+            }
         },
-        "rollback": {
-            "description": "Rollback instructions to revert the patch",
-            "$ref": "https://opencontainers.org/schema/patch/rollback"
-        },
-        "policies": {
-            "description": "Optional array of policy checks (e.g. OPA/Rego rules)",
+        "teams": {
+            "title": "Teams",
+            "description": "A list of teams associated with this patch.",
             "type": "array",
             "items": {
-                "description": "policy check",
-                "$ref": "https://opencontainers.org/schema/patch/policy"
+                "$ref": "team.json#"
+            }
+        },
+        "patches": {
+            "title": "Patches",
+            "description": "A list of actions to be applied to the target.",
+            "type": "array",
+            "items": {
+                "$ref": "layer-action.json#"
             }
         },
         "audit": {
-            "description": "Audit log for patch steps",
+            "title": "Audit Log",
+            "description": "An audit log detailing the steps taken in the patch.",
             "type": "array",
             "items": {
-                "description": "audit log",
-                "$ref": "https://opencontainers.org/schema/patch/audit"
+                "description": "An entry in the audit log.",
+                "$ref": "audit.json#"
             }
         },
-        "signatures": {
-            "description": "List of cryptographic patch signatures (notation, cosign, etc.)",
-            "type": "array",
-            "items": {
-                "description": "cryptographic patch signature",
-                "$ref": "https://opencontainers.org/schema/patch/signature"
-            }
-        },
-        "metadata": {
-            "description": "Arbitrary top-level patch metadata (tooling info, not patch logic)",
-            "type": "object",
-            "additionalProperties": {
-                "type": "string"
-            }
+        "annotations": {
+            "id": "https://opencontainers.org/schema/descriptor/annotations",
+            "$ref": "defs-descriptor.json#/definitions/annotations"
         }
     },
     "required": [
         "schemaVersion",
         "mediaType",
-        "id",
         "created",
-        "subject",
-        "operations"
+        "users",
+        "patches"
     ]
 }

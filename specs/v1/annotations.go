@@ -21,10 +21,12 @@ const (
 	// AnnotationPatchImageDigest is the annotation key for the digest of the
 	// image's patch image. This allows for content-addressable lookup of the patch.
 	// The value of this annotation should be the digest of the patch image manifest.
-	AnnotationPatchImageDigest = "org.opencontainers.image.patch.digest"
+	AnnotationPatchImageDigest = "io.bazer.image.patch/digest"
 
 	// AnnotationPatchImageName is the annotation key for the image reference
 	// (e.g., "example.com/repo/app:patch-v1") of the image's patch image.
 	// This provides a human-readable and location-addressable way to find the patch.
-	AnnotationPatchImageName = "org.opencontainers.image.patch.name"
+	AnnotationPatchImageName = "io.bazer.image.patch/name"
 )
+
+const MediaTypePatchImageV1 = "application/vnd.bazer.image.patch.v1+json"

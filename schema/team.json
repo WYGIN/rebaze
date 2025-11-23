@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Team",
+    "description": "Defines a team within the organization.",
+    "id": "https://bazer.io/schema/team",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Team ID",
+            "description": "A unique identifier for the team.",
+            "type": "string",
+            "examples": ["team_f1e2d3c4b5a6"]
+        },
+        "name": {
+            "title": "Team Name",
+            "description": "The name of the team.",
+            "type": "string",
+            "examples": ["The A-Team"]
+        },
+        "email": {
+            "title": "Team Email",
+            "description": "The team's email address.",
+            "type": "string",
+            "format": "email",
+            "examples": ["a-team@example.com"]
+        },
+        "urls": {
+            "title": "Related URLs",
+            "description": "A list of URLs associated with the team, such as a project page or wiki.",
+            "$ref": "defs-descriptor.json#/definitions/urls"
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "email"
+    ]
+}

@@ -1,0 +1,156 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "OCI Layer Action",
+    "description": "Defines an action to be performed on an OCI image layer, such as appending, prepending, replacing, or removing a layer.",
+    "id": "https://bazer.io/schema/patch/layer-action",
+    "type": "object",
+    "properties": {
+        "id": {
+            "title": "Action ID",
+            "description": "A unique identifier for the layer action.",
+            "type": "string",
+            "examples": ["act_123456789"]
+        },
+        "kind": {
+            "title": "OCI Structure Type",
+            "description": "The type of OCI structure being patched.",
+            "type": "string",
+            "enum": [
+                "manifest",
+                "config",
+                "index"
+            ],
+            "examples": ["manifest"]
+        },
+        "action": {
+            "title": "Layer Action Type",
+            "description": "The specific type of action to be performed on the layer.",
+            "oneOf": [
+                { "$ref": "#/$defs/layer-append" },
+                { "$ref": "#/$defs/layer-prepend" },
+                { "$ref": "#/$defs/layer-replace" },
+                { "$ref": "#/$defs/layer-remove" }
+            ]
+        },
+        "reason": {
+            "title": "Reason for Action",
+            "description": "An explanation for why this operation is needed, such as a CVE fix or a version update.",
+            "type": "string",
+            "examples": ["Addressing CVE-2024-12345"]
+        },
+        "annotations": {
+            "title": "Annotations",
+            "description": "A set of key-value pairs for additional metadata.",
+            "$ref": "defs-descriptor.json#/definitions/annotations"
+        }
+    },
+    "required": [
+        "id",
+        "kind",
+        "action",
+        "reason"
+    ],
+    "$defs": {
+        "layer-append": {
+            "title": "Layer Append Action",
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "description": "The digest of the layer to append.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "anchor": {
+                    "description": "The digest of the layer to which the new layer will be appended.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "actions": {
+                    "description": "A list of sub-actions to be performed.",
+                    "$ref": "#/$defs/layer-actions"
+                },
+                "annotations": {
+                    "description": "Additional metadata for this action.",
+                    "$ref": "defs-descriptor.json#/definitions/annotations"
+                }
+            },
+            "required": ["reference", "anchor"]
+        },
+        "layer-prepend": {
+            "title": "Layer Prepend Action",
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "description": "The digest of the layer to prepend.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "anchor": {
+                    "description": "The digest of the layer to which the new layer will be prepended.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "actions": {
+                    "description": "A list of sub-actions to be performed.",
+                    "$ref": "#/$defs/layer-actions"
+                },
+                "annotations": {
+                    "description": "Additional metadata for this action.",
+                    "$ref": "defs-descriptor.json#/definitions/annotations"
+                }
+            },
+            "required": ["reference", "anchor"]
+        },
+        "layer-replace": {
+            "title": "Layer Replace Action",
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "description": "The digest of the new layer that will replace the target layer.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "anchor": {
+                    "description": "The digest of the layer to be replaced.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "actions": {
+                    "description": "A list of sub-actions to be performed.",
+                    "$ref": "#/$defs/layer-actions"
+                },
+                "annotations": {
+                    "description": "Additional metadata for this action.",
+                    "$ref": "defs-descriptor.json#/definitions/annotations"
+                }
+            },
+            "required": ["reference", "anchor"]
+        },
+        "layer-remove": {
+            "title": "Layer Remove Action",
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "description": "The digest of the layer to remove.",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "actions": {
+                    "description": "A list of sub-actions to be performed.",
+                    "$ref": "#/$defs/layer-actions"
+                },
+                "annotations": {
+                    "description": "Additional metadata for this action.",
+                    "$ref": "defs-descriptor.json#/definitions/annotations"
+                }
+            },
+            "required": ["reference"]
+        },
+        "layer-actions": {
+            "title": "Sub-Actions",
+            "description": "A list of nested layer actions.",
+            "type": "array",
+            "items": {
+                "oneOf": [
+                    { "$ref": "#/$defs/layer-append" },
+                    { "$ref": "#/$defs/layer-prepend" },
+                    { "$ref": "#/$defs/layer-replace" },
+                    { "$ref": "#/$defs/layer-remove" }
+                ]
+            }
+        }
+    }
+}

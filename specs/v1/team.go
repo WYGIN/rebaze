@@ -14,11 +14,10 @@
 
 package v1
 
-type User struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	TeamID string `json:"team,omitempty"`
+type Team struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 	// URLs specifies a list of URLs from which this object MAY be downloaded
 	URLs []string `json:"urls,omitempty"`
 }

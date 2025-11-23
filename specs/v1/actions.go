@@ -1,6 +1,5 @@
 package v1
 
-
 // PatchOperationType enumerates the supported types of patch operations.
 // These constants ensure type safety and prevent the use of invalid "magic strings".
 type PatchOperationType string

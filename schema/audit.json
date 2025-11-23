@@ -1,0 +1,54 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Audit Log",
+    "description": "An audit log entry detailing a user-performed operation.",
+    "id": "https://bazer.io/schema/patch/audit",
+    "type": "object",
+    "properties": {
+        "timestamp": {
+            "title": "Timestamp",
+            "description": "An RFC 3339 timestamp for when the operation occurred.",
+            "type": "string",
+            "format": "date-time",
+            "examples": ["2024-05-20T15:00:00Z"]
+        },
+        "user": {
+            "title": "User",
+            "description": "A reference to the ID of the user who performed the action.",
+            "$ref": "user.json#/properties/id"
+        },
+        "action": {
+            "title": "Action Performed",
+            "description": "The type of action that was performed.",
+            "type": "string",
+            "enum": ["append", "prepend", "replace", "remove"],
+            "examples": ["replace"]
+        },
+        "patch": {
+            "title": "Patch Reference",
+            "description": "A reference to the ID of the layer action that was executed.",
+            "$ref": "layer-action.json#/properties/id"
+        },
+        "urls": {
+            "title": "Download URLs",
+            "description": "A list of URLs from which this audit object may be downloaded.",
+            "$ref": "defs-descriptor.json#/definitions/urls"
+        },
+        "data": {
+            "title": "Embedded Content",
+            "description": "An embedding of the targeted content.",
+            "$ref": "defs.json#/definitions/base64",
+            "contentEncoding": "base64"
+        },
+        "annotations": {
+            "title": "Annotations",
+            "description": "A set of key-value pairs for additional metadata.",
+            "$ref": "defs-descriptor.json#/definitions/annotations"
+        }
+    },
+    "required": [
+        "timestamp",
+        "user",
+        "action"
+    ]
+}
