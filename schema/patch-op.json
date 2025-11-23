@@ -38,10 +38,6 @@
             "type": "string",
             "pattern": "^[a-z0-9]+(?:[+._-][a-z0-9]+)*:[a-zA-Z0-9=_-]+$"
         },
-        "from": {
-            "description": "Source path for move operations (RFC6901 JSON Pointer)",
-            "type": "string"
-        },
         "value": {
             "description": "For patching config field values (e.g. replace config.Env)",
             "type": [
